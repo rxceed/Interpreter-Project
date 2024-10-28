@@ -1,3 +1,5 @@
+import sys
+
 #Class token
 class token:
     def __init__(self, type, val):
@@ -138,31 +140,21 @@ class interpreter:
                         self.tokens.pop()
                     elif self.tokens.GetTop().type == "INT":
                         self.tokens.GetTop().val = chr(self.tokens.GetTop().val+48)
-                        self.tokens.GetElement(self.tokens.GetSize()-1).val = self.tokens.GetElement(self.tokens.GetSize()-1).val + self.tokens.GetTop().val
+                        self.tokens.GetElement(self.tokens.GetSize()-1).val = str(self.tokens.GetElement(self.tokens.GetSize()-1).val) + self.tokens.GetTop().val
                         self.tokens.pop()
                     elif self.tokens.GetTop().type == "OPCODE":
-                        self.tokens.GetElement(self.tokens.GetSize()-1).val = self.tokens.GetElement(self.tokens.GetSize()-1).val + self.tokens.GetTop().val
+                        self.tokens.GetElement(self.tokens.GetSize()-1).val = str(self.tokens.GetElement(self.tokens.GetSize()-1).val) + self.tokens.GetTop().val
                         self.tokens.pop()
-                    elif self.tokens.GetTop().type == "WHITESPACE":
+                    elif self.tokens.GetTop().type == "WHITESPACE" and (QuoteCheck.IsEmpty() is False):
                         self.tokens.GetTop().val = chr(32)
                         self.tokens.GetElement(self.tokens.GetSize()-1).val = self.tokens.GetElement(self.tokens.GetSize()-1).val + self.tokens.GetTop().val
                         self.tokens.pop()
-            if self.tokens.GetTop().type == "WHITESPACE" and self.tokens.GetElement(self.tokens.GetSize()-1).type != ("OPCODE" or "STR"):
-                self.tokens.pop()
+            #if self.tokens.GetTop().type == "WHITESPACE" and self.tokens.GetElement(self.tokens.GetSize()-1).type != ("OPCODE" or "STR"):
+            #    self.tokens.pop()
             
         #Penerjemahan token ke function logic
         while self.tokens.IsEmpty() is False:
-            if self.tokens.GetElement(self.tokens.GetSize()-1).type == "OP":
-                if self.tokens.GetElement(self.tokens.GetSize()-1).val == "+":
-                    result = self.add(self.TokenPos)
-                    '''''
-                    self.tokens.insert(self.TokenPos, result)
-                    self.tokens.pop(self.TokenPos+1)
-                    self.tokens.pop(self.TokenPos+1)
-                    self.tokens.pop(self.TokenPos-1)
-                    print(result.val)
-                    '''''
-            elif self.tokens.GetTop().type == "INT" or self.tokens.GetTop().type == "STR":
+            if self.tokens.GetTop().type == "INT" or self.tokens.GetTop().type == "STR":
                 self.ValueStack.push(self.tokens.GetTop())
             elif self.tokens.GetTop().type == "OPCODE":
                 if self.tokens.GetTop().val == "TAMPILKAN":
@@ -187,7 +179,31 @@ class interpreter:
                         else:
                             self.ConvertToBinary(self.ValueStack.GetTop())
                             self.OPCodeHistory.pop()
-                elif self.tokens.GetTop().val == "BIN":
+                    elif self.OPCodeHistory.GetTop().val == "DEC":
+                        if self.TokenHistory.IsEmpty() is False:
+                            self.ConvertToDecimal(token(self.variable.search(self.TokenHistory.GetTop().val).type, self.variable.search(self.TokenHistory.GetTop().val).value))
+                            self.TokenHistory.pop()
+                            self.OPCodeHistory.pop()
+                        else:
+                            self.ConvertToDecimal(self.ValueStack.GetTop())
+                            self.OPCodeHistory.pop()
+                    elif self.OPCodeHistory.GetTop().val == "OCT":
+                        if self.TokenHistory.IsEmpty() is False:
+                            self.ConvertToOctal(token(self.variable.search(self.TokenHistory.GetTop().val).type, self.variable.search(self.TokenHistory.GetTop().val).value))
+                            self.TokenHistory.pop()
+                            self.OPCodeHistory.pop()
+                        else:
+                            self.ConvertToOctal(self.ValueStack.GetTop())
+                            self.OPCodeHistory.pop()
+                    elif self.OPCodeHistory.GetTop().val == "HEX":
+                        if self.TokenHistory.IsEmpty() is False:
+                            self.ConvertToHex(token(self.variable.search(self.TokenHistory.GetTop().val).type, self.variable.search(self.TokenHistory.GetTop().val).value))
+                            self.TokenHistory.pop()
+                            self.OPCodeHistory.pop()
+                        else:
+                            self.ConvertToHex(self.ValueStack.GetTop())
+                            self.OPCodeHistory.pop()
+                elif self.tokens.GetTop().val == "BIN" or self.tokens.GetTop().val == "DEC" or self.tokens.GetTop().val == "OCT" or self.tokens.GetTop().val == "HEX":
                     self.OPCodeHistory.push(self.tokens.GetTop())
                 elif self.variable.size > 0 and self.tokens.GetTop().val == self.variable.search(self.tokens.GetTop().val).name:
                     self.TokenHistory.push(self.tokens.GetTop())
@@ -195,7 +211,6 @@ class interpreter:
                     self.AbstractStack.push(self.tokens.GetTop())
                     
             self.tokens.pop()
-
     #Function logic
     def ShowLatestInStack(self):
         if self.ValueStack.IsEmpty() is False:
@@ -216,8 +231,36 @@ class interpreter:
     def ConvertToBinary(self, ValueToConvert):
         if ValueToConvert.type == "INT":
             self.ValueStack.push(token("BIN", bin(int(ValueToConvert.val))))
+        elif ValueToConvert.type == "STR" or ValueToConvert.type == "OCT" or ValueToConvert.type == "HEX":
+            if ValueToConvert.val[1] == "o" or ValueToConvert.val[1] == "O":
+                self.ValueStack.push(token("BIN", bin(int(ValueToConvert.val, 8))))
+            elif ValueToConvert.val[1] == "x" or ValueToConvert.val[1] == "X":
+                self.ValueStack.push(token("BIN", bin(int(ValueToConvert.val, 16))))
+    def ConvertToDecimal(self, ValueToConvert):
+        if ValueToConvert.val[1] == "o" or ValueToConvert.val[1] == "O":
+            self.ValueStack.push(token("INT", int(ValueToConvert.val, 8)))
+        elif ValueToConvert.val[1] == "x" or ValueToConvert.val[1] == "X":
+            self.ValueStack.push(token("INT", int(ValueToConvert.val, 16)))
+        elif ValueToConvert.val[1] == "b" or ValueToConvert.val[1] == "B":
+            self.ValueStack.push(token("INT", int(ValueToConvert.val, 2)))
+    def ConvertToOctal(self, ValueToConvert):
+        if ValueToConvert.type == "INT":
+            self.ValueStack.push(token("OCT", oct(int(ValueToConvert.val))))
+        elif ValueToConvert.type == "STR" or ValueToConvert.type == "BIN" or ValueToConvert.type == "HEX":
+            if ValueToConvert.val[1] == "b" or ValueToConvert.val[1] == "B":
+                self.ValueStack.push(token("OCT", oct(int(ValueToConvert.val, 2))))
+            elif ValueToConvert.val[1] == "x" or ValueToConvert.val[1] == "X":
+                self.ValueStack.push(token("OCT", oct(int(ValueToConvert.val, 16))))
+    def ConvertToHex(self, ValueToConvert):
+        if ValueToConvert.type == "INT":
+            self.ValueStack.push(token("HEX", hex(int(ValueToConvert.val))))
+        elif ValueToConvert.type == "STR" or ValueToConvert.type == "OCT" or ValueToConvert.type == "BIN":
+            if ValueToConvert.val[1] == "o" or ValueToConvert.val[1] == "O":
+                self.ValueStack.push(token("HEX", hex(int(ValueToConvert.val, 8))))
+            elif ValueToConvert.val[1] == "b" or ValueToConvert.val[1] == "B":
+                self.ValueStack.push(token("HEX", hex(int(ValueToConvert.val, 2))))
 
-f = open("file.skibidi", "r")
+f = open(sys.argv[1], "r")
 test = interpreter()
 for x in f.readlines():
     test.read(x)
