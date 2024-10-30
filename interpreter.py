@@ -70,7 +70,6 @@ class interpreter:
         self.OPCodeHistory = Stack(256)
         self.ValueStack = Stack(256)
         self.AbstractStack = Stack(256)
-        #self.variable = Stack(256)
         self.variable = LinkedList()
     
     #Function parsing string ke token
@@ -223,7 +222,7 @@ class interpreter:
 
                 elif self.variable.size > 0 and self.tokens.GetTop().val == self.variable.search(self.tokens.GetTop().val).name:
                     self.TokenHistory.push(self.tokens.GetTop())
-                    
+
                 else:
                     self.AbstractStack.push(self.tokens.GetTop())
                     
