@@ -149,9 +149,7 @@ class interpreter:
                         self.tokens.GetTop().val = chr(32)
                         self.tokens.GetElement(self.tokens.GetSize()-1).val = self.tokens.GetElement(self.tokens.GetSize()-1).val + self.tokens.GetTop().val
                         self.tokens.pop()
-            #if self.tokens.GetTop().type == "WHITESPACE" and self.tokens.GetElement(self.tokens.GetSize()-1).type != ("OPCODE" or "STR"):
-            #    self.tokens.pop()
-            
+
         #Penerjemahan token ke function logic
         while self.tokens.IsEmpty() is False:
             if self.tokens.GetTop().type == "INT" or self.tokens.GetTop().type == "STR":
@@ -234,10 +232,14 @@ class interpreter:
         elif ValueToConvert.type == "STR" or ValueToConvert.type == "OCT" or ValueToConvert.type == "HEX":
             if ValueToConvert.val[1] == "o" or ValueToConvert.val[1] == "O":
                 self.ValueStack.push(token("BIN", bin(int(ValueToConvert.val, 8))))
+            elif ValueToConvert.val[1] == "b" or ValueToConvert.val[1] == "B":
+                self.ValueStack.push(token("BIN", bin(int(ValueToConvert.val, 2))))
             elif ValueToConvert.val[1] == "x" or ValueToConvert.val[1] == "X":
                 self.ValueStack.push(token("BIN", bin(int(ValueToConvert.val, 16))))
     def ConvertToDecimal(self, ValueToConvert):
-        if ValueToConvert.val[1] == "o" or ValueToConvert.val[1] == "O":
+        if ValueToConvert.type == "INT":
+            self.ValueStack.push(token("INT", int(ValueToConvert.val)))
+        elif ValueToConvert.val[1] == "o" or ValueToConvert.val[1] == "O":
             self.ValueStack.push(token("INT", int(ValueToConvert.val, 8)))
         elif ValueToConvert.val[1] == "x" or ValueToConvert.val[1] == "X":
             self.ValueStack.push(token("INT", int(ValueToConvert.val, 16)))
@@ -249,6 +251,8 @@ class interpreter:
         elif ValueToConvert.type == "STR" or ValueToConvert.type == "BIN" or ValueToConvert.type == "HEX":
             if ValueToConvert.val[1] == "b" or ValueToConvert.val[1] == "B":
                 self.ValueStack.push(token("OCT", oct(int(ValueToConvert.val, 2))))
+            elif ValueToConvert.val[1] == "o" or ValueToConvert.val[1] == "O":
+                self.ValueStack.push(token("OCT", int(ValueToConvert.val, 8)))
             elif ValueToConvert.val[1] == "x" or ValueToConvert.val[1] == "X":
                 self.ValueStack.push(token("OCT", oct(int(ValueToConvert.val, 16))))
     def ConvertToHex(self, ValueToConvert):
@@ -259,9 +263,15 @@ class interpreter:
                 self.ValueStack.push(token("HEX", hex(int(ValueToConvert.val, 8))))
             elif ValueToConvert.val[1] == "b" or ValueToConvert.val[1] == "B":
                 self.ValueStack.push(token("HEX", hex(int(ValueToConvert.val, 2))))
+            elif ValueToConvert.val[1] == "x" or ValueToConvert.val[1] == "X":
+                self.ValueStack.push(token("HEX", oct(int(ValueToConvert.val, 16))))
 
-f = open(sys.argv[1], "r")
-test = interpreter()
+if len(sys.argv) <= 1:
+    FileName = input("Masukkan nama file: ")
+    f = open(FileName, "r")
+else:
+    f = open(sys.argv[1], "r")
+main = interpreter()
 for x in f.readlines():
-    test.read(x)
-    test.interpret()
+    main.read(x)
+    main.interpret()
