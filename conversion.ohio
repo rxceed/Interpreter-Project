@@ -1,12 +1,5 @@
-SIMPAN angka BACA
-KONVERSI angka BIN
-SIMPAN biner
-KONVERSI angka OCT
-SIMPAN octal
-KONVERSI angka HEX
-SIMPAN hexa
-
-TAMPILKAN angka
-TAMPILKAN biner
-TAMPILKAN octal
-TAMPILKAN hexa
+BACA
+SIMPAN angka2 
+KONVERSI angka2 DEC
+SIMPAN hasil
+TAMPILKAN hasil
